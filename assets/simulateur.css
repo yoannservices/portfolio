@@ -1,0 +1,9 @@
+/* Base commune des simulateurs : <html class="sim"> + ce fichier, après theme.css et avant style.css.
+   :where() garde une spécificité nulle, donc le style.css de chaque simulateur garde le dernier mot. */
+[hidden] { display: none !important; }
+:where(html.sim, html.sim body) {
+  height: 100%; margin: 0; overflow: hidden;
+  background: var(--ui-bg); color: var(--ui-text); font-family: var(--ui-font);
+  -webkit-user-select: none; user-select: none;
+}
+:where(.sim) canvas { display: block; }

@@ -2,7 +2,7 @@
 
 Mon portfolio : applications web, outils JavaScript, simulations interactives et projets Arduino.
 
-**▶ Démo en ligne : [https://yoannservices.github.io/Y.Portfolio/](https://yoannservices.github.io/Y.Portfolio/)**
+**▶ Démo en ligne : [https://yoannservices.github.io/portfolio/](https://yoannservices.github.io/portfolio/)**
 
 ## Fonctionnalités
 
@@ -32,4 +32,4 @@ HTML, CSS et JavaScript ; rendu 3D avec [Three.js](https://threejs.org/) r128 (c
 
 ---
 
-Fait partie de [Mes Projets](https://yoannservices.github.io/) · [Portfolio](https://yoannservices.github.io/Y.Portfolio/) · par [@yoannservices](https://github.com/yoannservices)
+Fait partie de [Mes Projets](https://yoannservices.github.io/) · [Portfolio](https://yoannservices.github.io/portfolio/) · par [@yoannservices](https://github.com/yoannservices)
