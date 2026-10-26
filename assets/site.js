@@ -33,7 +33,6 @@
     { cat: 'loisirs', path: 'loisirs/tier-list/',           name: 'Tier List Maker',        desc: 'Classement drag-and-drop' },
     { cat: 'loisirs', path: 'loisirs/quick-play/',          name: 'QuickPlay',              desc: '15 mini-jeux arcade' },
     { cat: 'loisirs', path: 'loisirs/banc-essai-moteur/',   name: "Banc d'essai moteur",          desc: "Banc d'essai moteur, boîte et pédales" },
-    { cat: 'loisirs', path: 'loisirs/drift-arcade/', mini: true,      name: 'Drift Arcade',           desc: 'Mini-simulateur de drift avec physique, traces et score' },
     { cat: 'loisirs', path: 'loisirs/drift-king/', mini: true,      name: 'Drift King',             desc: 'Drift sur une route de montagne' },
     { cat: 'loisirs', path: 'loisirs/sky-pilot/', mini: true, pos: 'tr',name: 'Sky Pilot',       desc: 'F-35B et PV-40 à aile basculante, vol libre' },
     { cat: 'loisirs', path: 'loisirs/moto-rider/', mini: true, name: 'Moto Rider',        desc: 'Moto sur route de col' },
