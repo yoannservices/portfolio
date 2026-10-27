@@ -34,6 +34,7 @@
     { cat: 'loisirs', path: 'loisirs/quick-play/',          name: 'QuickPlay',              desc: '15 mini-jeux arcade' },
     { cat: 'loisirs', path: 'loisirs/banc-essai-moteur/',   name: "Banc d'essai moteur",          desc: "Banc d'essai moteur, boîte et pédales" },
     { cat: 'loisirs', path: 'loisirs/drift-king/', mini: true,      name: 'Drift King',             desc: 'Drift sur une route de montagne' },
+    { cat: 'loisirs', path: 'loisirs/drift-zone/', mini: true,      name: 'Drift Zone',             desc: 'Drift sur une grande plateforme 3D : combos, frôlements, 2 minutes' },
     { cat: 'loisirs', path: 'loisirs/sky-pilot/', mini: true, pos: 'tr',name: 'Sky Pilot',       desc: 'F-35B et PV-40 à aile basculante, vol libre' },
     { cat: 'loisirs', path: 'loisirs/moto-rider/', mini: true, name: 'Moto Rider',        desc: 'Moto sur route de col' },
     { cat: 'loisirs', path: 'loisirs/tesla-roadster/', mini: true, name: 'Tesla Roadster',  desc: 'Roadster 3D : murs, plafonds, vol, boost et tonneaux en ville' },
