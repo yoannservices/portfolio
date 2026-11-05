@@ -1,0 +1,39 @@
+/* Habillage commun des menus de départ des jeux (classes posées par assets/driving-base.js) :
+   même fond, même carte, mêmes boutons, accent de la catégorie (--ui-accent, défini par theme.css). */
+.hk-scrim {
+  background: radial-gradient(ellipse at 50% 0%, rgba(var(--ui-accent-rgb), .18), transparent 62%), rgba(8, 10, 14, .8) !important;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.hk-card {
+  background: var(--ui-surface) !important;
+  border: 1px solid var(--ui-border-strong) !important;
+  border-top: 3px solid var(--ui-accent) !important;
+  border-radius: var(--ui-radius) !important;
+  box-shadow: var(--ui-shadow), 0 30px 80px rgba(0, 0, 0, .45) !important;
+  color: var(--ui-text) !important;
+  font-family: var(--ui-font) !important;
+  padding: 26px 30px !important;
+  box-sizing: border-box;
+}
+.hk-card *, .hk-card button { font-family: var(--ui-font) !important; }
+
+/* Bloc titre / présentation / touches */
+.hk-brief { display: block; margin: 0 0 18px; text-align: left; color: inherit; }
+.hk-brief h1 { margin: 0 0 8px !important; font-size: clamp(26px, 5vw, 38px) !important; font-weight: 800 !important; line-height: 1.05 !important; letter-spacing: -.01em !important; color: #fff !important; text-transform: none !important; text-shadow: none !important; }
+.hk-brief p { margin: 0 0 16px !important; max-width: none !important; font-size: 14px !important; line-height: 1.45; color: var(--ui-muted); opacity: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.hk-brief__keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 4px 20px; margin: 0; padding: 0; }
+.hk-brief__key { display: flex; gap: 10px; align-items: baseline; font-size: 12.5px; padding: 5px 0; border-bottom: 1px solid var(--ui-border); color: var(--ui-text); }
+.hk-brief__key kbd { flex: none; min-width: 72px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--ui-border-strong); background: var(--ui-surface-3); font: 600 11px/1.5 var(--ui-mono); color: var(--ui-accent-2); text-align: center; }
+
+/* Boutons d'action : le premier est le bouton principal */
+.hk-btn {
+  box-sizing: border-box; margin-top: 8px;
+  padding: 11px 16px !important; border-radius: var(--ui-radius-sm) !important;
+  border: 1px solid var(--ui-border-strong) !important; background-color: var(--ui-surface-3) !important; background-image: none !important;
+  color: var(--ui-text) !important; font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0 !important; text-transform: none !important;
+  text-shadow: none !important; box-shadow: none !important; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.hk-btn:hover:not(:disabled) { border-color: var(--ui-accent) !important; background-color: rgba(var(--ui-accent-rgb), .14) !important; }
+.hk-btn:disabled { opacity: .5; cursor: default; }
+.hk-btn.hk-primary { background-color: var(--ui-accent) !important; filter: none !important; border-color: var(--ui-accent) !important; color: #04130a !important; }
+.hk-btn.hk-primary:hover:not(:disabled) { background-color: var(--ui-accent-2) !important; border-color: var(--ui-accent-2) !important; }

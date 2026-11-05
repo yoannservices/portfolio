@@ -270,9 +270,8 @@ select option { background: var(--ui-surface); color: var(--ui-text); }
    dans la plupart des HUD) qui ouvre le même menu. */
 html.ui-mini .ui-bar {
   top: max(8px, env(safe-area-inset-top, 0px));
-  left: 50%;
+  left: calc(max(10px, env(safe-area-inset-left, 0px)) + 46px);
   right: auto;
-  transform: translateX(-50%);
   height: auto;
   padding: 3px;
   gap: 3px;
@@ -280,11 +279,6 @@ html.ui-mini .ui-bar {
   border: 1px solid var(--ui-border);
   border-radius: 12px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, .35);
-}
-html.ui-mini[data-ui-pos="tr"] .ui-bar {
-  left: auto;
-  right: max(10px, env(safe-area-inset-right, 0px));
-  transform: none;
 }
 html.ui-mini .ui-bar::after,
 html.ui-mini .ui-crumbs,
@@ -294,8 +288,8 @@ html.ui-mini .ui-btn-label { display: none; }
 html.ui-mini .ui-home { margin: 0; padding: 4px; }
 html.ui-mini .ui-actions { margin-left: 0; }
 html.ui-mini .ui-btn { height: 28px; min-width: 28px; padding: 0 7px; }
-html.ui-mini .ui-menu { top: calc(100% + 6px); left: 50%; right: auto; transform: translateX(-50%); animation: none; }
-html.ui-mini[data-ui-pos="tr"] .ui-menu { left: auto; right: 0; transform: none; }
+html.ui-mini .ui-menu { top: calc(100% + 6px); left: 0; right: auto; animation: none; }
+
 
 @media (max-width: 640px) {
   .ui-bar { padding: 0 12px; gap: 8px; }
