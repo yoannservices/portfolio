@@ -1,7 +1,8 @@
 // Performance commune des jeux Three.js : plafond à 60 FPS et résolution adaptative (cible 30-60 FPS).
 // patch(THREE) intercepte render/setPixelRatio, que WebGLRenderer définit sur chaque instance : aucun changement dans le code des jeux.
 import { initHud } from './hud-kit.js';
-const MIN_SCALE = 0.4, MAX_FPS = 60;
+import { frameUpdate, autoTick, maxFps } from './quality.js';
+const MIN_SCALE = 0.4;
 
 export function patch(T) {
   const P = T.WebGLRenderer.prototype;
@@ -29,6 +30,7 @@ export function patch(T) {
       initHud(T, r, s);
     }
     if (s.skip) return;
+    if (scene && scene.isScene && cam && cam.isPerspectiveCamera && !r.getRenderTarget()) frameUpdate(T, scene, cam); // distance d'affichage, brouillard, portée, ombres (quality.js)
     return render.apply(r, a);
   });
 
@@ -39,9 +41,10 @@ export function patch(T) {
       requestAnimationFrame(tick);
       const dt = now - prev; prev = now;
       if (dt > 250 || document.hidden) return; // onglet en pause : on ignore
-      s.skip = now - lastDraw < 1000 / MAX_FPS - 1.5; // écran > 60 Hz : une image sur deux
+      s.skip = now - lastDraw < 1000 / maxFps() - 1.5; // écran > 60 Hz : une image sur deux
       if (!s.skip) lastDraw = now;
       s.avg += (dt - s.avg) * 0.08;
+      autoTick(s.avg, s.scale, dt);
       if (s.avg > 1000 / 40 && s.scale > MIN_SCALE) { // sous 40 FPS : on baisse la résolution
         s.scale = Math.max(MIN_SCALE, s.scale - 0.1); s.avg = 16.7; s.good = 0; r.setPixelRatio(s.base);
       } else if (s.avg < 1000 / 55 && s.scale < 1) { // marge confortable : on remonte doucement
