@@ -26,6 +26,11 @@
       cam: true, a: [STEER], t: DRIVE, b: { 0: 'Space', 1: 'KeyL', 2: 'KeyR', 3: 'KeyC', 5: 'ShiftLeft', 12: 'KeyT', 15: 'KeyN' },
       air: { cam: false, a: [STEER, ['ly', 'KeyW', 'KeyS'], ['rx', 'KeyQ', 'KeyE']], t: [] },
     },
+    // voiture volante : au sol comme une voiture ; en vol sticks = avancer/lacet (gauche) et glisser/roulis (droit), RT monte, LT descend
+    flycar: {
+      cam: true, a: [STEER], t: DRIVE, b: { 0: 'Space', 1: 'KeyL', 2: 'KeyR', 3: 'KeyC', 4: 'KeyB', 5: 'KeyG', 10: 'KeyO', 11: 'ShiftLeft', 13: 'KeyF' },
+      air: { cam: false, a: [['lx', 'KeyA', 'KeyD'], ['ly', 'KeyW', 'KeyS'], ['rx', 'KeyQ', 'KeyE']], t: [['rt', 'Space'], ['lt', 'ControlLeft']] },
+    },
     // trottinette freestyle / VTT : en l'air stick gauche = rotations + flips, stick droit = barre (x) et socle (y) ; au sol caméra
     trot: {
       cam: true, a: [STEER], t: DRIVE,
@@ -56,7 +61,7 @@
     let p = P[base] || P.none, id = s;
     if (base === 'mo') {
       const cat = s && s.cat; id = s && s.id;
-      const k = id === 'freestyle' ? 'trot' : id === 'tesla' ? 'tesla' : id === 'kukirin' ? 'kuk' : { bike: 'mr', heli: 'heli', plane: 'plane', drone: 'drone' }[cat] || 'car';
+      const k = id === 'freestyle' ? 'trot' : id === 'tesla' ? 'tesla' : id === 'flycar' ? 'flycar' : id === 'kukirin' ? 'kuk' : { bike: 'mr', heli: 'heli', plane: 'plane', drone: 'drone' }[cat] || 'car';
       p = Object.assign({}, P[k]); p.b = Object.assign({}, p.b, k === 'plane' ? { 3: 'KeyC', 15: 'KeyV', 14: 'KeyF', 11: 'KeyO' } : {});
       if (k === 'mr') p.b = Object.assign({}, p.b, { 1: 'KeyL' });
     }
