@@ -48,11 +48,12 @@
     { cat: 'outils',  path: 'outils/univers/',             name: 'Univers',                desc: 'Dragon et One Piece' },
     { cat: 'outils',  path: 'outils/tier-list/',      name: 'Tier List Maker',        desc: 'Classement drag-and-drop' },
     { cat: 'outils',  path: 'outils/banc-essai-moteur/',   name: "Banc d'essai moteur",          desc: "Banc d'essai moteur, boîte et pédales" },
-    { cat: 'loisirs', path: 'loisirs/drift-king/', mini: true, pause: 'freeze',      name: 'Drift King',             desc: 'Drift sur une route de montagne' },
+    { cat: 'loisirs', path: 'loisirs/drift-king/', mini: true, name: 'Drift King',             desc: 'Drift sur une route de montagne' },
     { cat: 'loisirs', path: 'loisirs/drift-zone/', mini: true,      name: 'Drift Zone',             desc: 'Drift sur une grande plateforme 3D : combos, frôlements, 2 minutes' },
     { cat: 'loisirs', path: 'loisirs/bus-city-simulator/', mini: true, name: 'Bus City Simulator', desc: 'Simulateur de bus urbain : 5 bus, ville, lignes, horaires, économie et météo' },
+    { cat: 'loisirs', path: 'loisirs/chantier-carriere/', mini: true, name: 'Chantier & Carrière', desc: 'Carrière : tir de mine, pelle, chargeuse, tombereau, bouteur, concasseur et camions clients' },
     { cat: 'loisirs', path: 'loisirs/sky-pilot/', mini: true,name: 'Sky Pilot',      desc: 'F-35B et PV-40 à aile basculante, vol libre' },
-    { cat: 'loisirs', path: 'loisirs/moto-rider/', mini: true, pause: 'freeze', name: 'Moto Rider',        desc: 'Moto sur route de col' },
+    { cat: 'loisirs', path: 'loisirs/moto-rider/', mini: true, name: 'Moto Rider',        desc: 'Moto sur route de col' },
     { cat: 'loisirs', path: 'loisirs/tesla-roadster/', mini: true, name: 'Tesla Roadster',  desc: 'Roadster 3D : murs, plafonds, vol, boost et tonneaux en ville' },
     { cat: 'loisirs', path: 'loisirs/monde-ouvert/', mini: true, name: 'Monde Ouvert',  desc: 'Île 3D : 11 véhicules à choisir avec la roue (Tab)' },
     { cat: 'loisirs', path: 'loisirs/steep-peaks/', mini: true, name: 'Steep Peaks', desc: 'Snowboard, ski et wingsuit en monde ouvert de montagne' },
@@ -62,6 +63,7 @@
     { cat: 'loisirs', path: 'loisirs/downhill-riders/', mini: true, name: 'Downhill Riders', desc: 'VTT de descente freestyle : pistes par graine, tricks, biomes, boutique' },
     { cat: 'loisirs', path: 'loisirs/rally-masters/', mini: true, name: 'Rally Masters', desc: 'Rallye avec copilote : spéciales par graine, surfaces, météo, dégâts, championnat' },
     { cat: 'loisirs', path: 'loisirs/rail-express/', mini: true, name: 'Rail Express',      desc: 'Conduite ferroviaire : signalisation, gares et procédures' },
+    { cat: 'loisirs', path: 'loisirs/pompiers-18/', mini: true, name: 'Pompiers 18', desc: 'Sapeur-pompier : alerte 18, FPT, lance et ARI dans une maison en feu' },
     { cat: 'loisirs', path: 'loisirs/fpv-racer/', mini: true, name: 'FPV Racer',  desc: 'Drone FPV acro : tunnels, bando, course et suivi de voitures en drift' },
     { cat: 'loisirs', path: 'loisirs/apex-gp/',             name: 'Apex GP',                desc: 'Simulation de F1 : 8 circuits, 19 bots, météo, stands, radio' },
     { cat: 'loisirs', path: 'loisirs/moto-gp/',             name: 'Moto GP',                desc: 'Simulation de MotoGP : 8 circuits, 21 bots, inclinaison réaliste, stands, météo' },
@@ -95,7 +97,12 @@
     window.requestAnimationFrame = cb => rawRaf(t => (frozen ? heldFrames.push(cb) : cb(t)));
   }
 
-  function url(p) { return new URL(p.path.endsWith('.html') ? p.path : p.path + 'index.html', root).href; }
+  // jeux (loisirs/) : un dépôt GitHub Pages par jeu ; en local, chemins du dossier web
+  const online = /github\.io$/.test(location.hostname);
+  function url(p) {
+    if (online && p.cat === 'loisirs') return `https://yoannservices.github.io/${p.path.split('/')[1]}/`;
+    return new URL(p.path.endsWith('.html') ? p.path : p.path + 'index.html', root).href;
+  }
   function esc(s) {
     return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }

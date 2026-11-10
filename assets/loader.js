@@ -68,7 +68,7 @@
     update();
     clearTimeout(quiet);
     if (!loaded || !gameReady || pending.size || failures.size) return;
-    quiet = setTimeout(hide, 450);
+    quiet = setTimeout(hide, 900);
   }
   // Démarre le suivi d'une ressource ; renvoie la fonction qui la termine
   function track(url) {
@@ -158,5 +158,10 @@
   addEventListener('load', () => { loaded = true; check(); });
   addEventListener('error', event => { if (!gameReady) window.GameLoader.fail(event.message || 'Erreur au démarrage'); });
   addEventListener('unhandledrejection', event => { if (!gameReady) window.GameLoader.fail(event.reason); });
+  // Préchargement : data-preload="a.glb|b.glb" (chemins relatifs à la page) ; tout est téléchargé (et compté) avant la fin de l'écran de chargement.
+  // Les chargements du jeu qui suivent trouvent les fichiers dans le cache du navigateur.
+  for (const u of (document.currentScript.dataset.preload || '').split('|').filter(Boolean)) {
+    window.fetch(new URL(u, location.href).href).then(r => r.arrayBuffer()).catch(() => {});
+  }
   check();
 })();

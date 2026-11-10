@@ -27,7 +27,7 @@
 
 /* Boutons d'action : le premier est le bouton principal */
 .hk-btn {
-  box-sizing: border-box; margin-top: 8px;
+  box-sizing: border-box; margin-top: 8px; min-height: 44px; /* même hauteur de bouton dans tous les menus */
   padding: 11px 16px !important; border-radius: var(--ui-radius-sm) !important;
   border: 1px solid var(--ui-border-strong) !important; background-color: var(--ui-surface-3) !important; background-image: none !important;
   color: var(--ui-text) !important; font-size: 14px !important; font-weight: 600 !important; letter-spacing: 0 !important; text-transform: none !important;
@@ -37,3 +37,13 @@
 .hk-btn:disabled { opacity: .5; cursor: default; }
 .hk-btn.hk-primary { background-color: var(--ui-accent) !important; filter: none !important; border-color: var(--ui-accent) !important; color: #04130a !important; }
 .hk-btn.hk-primary:hover:not(:disabled) { background-color: var(--ui-accent-2) !important; border-color: var(--ui-accent-2) !important; }
+
+/* Pied de menu : Réglages puis commandes (en bas, sous les boutons du jeu) */
+.hk-foot { display: block; margin: 14px 0 0; padding-top: 6px; text-align: left; }
+.hk-foot .hk-set { width: 100%; }
+.hk-foot__title { margin: 18px 0 8px; font: 600 11px/1 var(--ui-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ui-muted); }
+
+.hk-foot .hk-btn { width: 100%; }
+
+/* menu plus haut que l'écran : il défile (commandes toujours atteignables) */
+.hk-card { max-height: calc(100vh - 24px) !important; overflow-y: auto !important; }
