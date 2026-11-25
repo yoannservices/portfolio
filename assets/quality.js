@@ -3,9 +3,12 @@
 // Réglages sauvegardés dans localStorage. Échelle de distance par jeu : <html data-lod="3"> (défaut 1 ; un simulateur de vol met 8).
 const KEY = 'site.quality.v2'; // v2 : tout le monde repart en qualité Moyen
 export const LEVELS = {
-  haut: { name: 'Haut', d1: 140, d2: 700, shadow: 2048 },
-  moyen: { name: 'Moyen', d1: 90, d2: 420, shadow: 1024 },
-  bas: { name: 'Bas', d1: 55, d2: 240, shadow: 512 },
+  // tex : plus grand côté des textures (px) ; aniso : filtrage anisotrope ; pr : plafond du pixelRatio (perf.js) ;
+  // near : distance (m) en deçà de laquelle une zone K.lodCity montre ses bâtiments détaillés ; détail des bâtiments du kit lu au
+  // chargement par building-kit.js (Haut et Moyen : complet, Bas : simplifié seulement)
+  haut: { name: 'Haut', d1: 140, d2: 700, shadow: 2048, tex: Infinity, aniso: 8, pr: 2, near: 120 },
+  moyen: { name: 'Moyen', d1: 90, d2: 420, shadow: 1024, tex: 1024, aniso: 4, pr: 1.5, near: 90 },
+  bas: { name: 'Bas', d1: 55, d2: 240, shadow: 512, tex: 512, aniso: 1, pr: 1, simple: true }, // simple : matériaux Lambert (voir lambertOf)
 };
 const ORDER = ['haut', 'moyen', 'bas'];
 export const Q = { mode: 'moyen', shadows: true, fps30: false, auto: 'haut', dist: 'normal', small: true, guide: 'both' }; // mode : auto | haut | moyen | bas ; auto = niveau choisi selon les FPS
@@ -42,7 +45,7 @@ function sphereOf(o) {
 }
 
 // Parcours (toutes les 8 images) : distance à la caméra -> proche / moyen (sans ombre projetée) / loin (masqué). Retourne le rayon du plus grand ciel détecté.
-function sweep(root, cam, d1, d2, shadowsOn, lvl, small) {
+function sweep(T, root, cam, d1, d2, shadowsOn, lvl, small) {
   const cp = cam.matrixWorld.elements; const cx = cp[12], cy = cp[13], cz = cp[14];
   let skyR = 0;
   const visit = o => {
@@ -50,13 +53,19 @@ function sweep(root, cam, d1, d2, shadowsOn, lvl, small) {
     if (!o.visible && !o.__qHid) return; // masqué par le jeu : on ne touche pas à ses enfants
     if ((o.isMesh || o.isPoints || o.isLine) && o.geometry && !skipObj(o)) {
       const sp = sphereOf(o), m = matOf(o);
+      if (o.isMesh && o.material && !o.isSprite) matSwap(T, o, !!lvl.simple);
+      if (Array.isArray(o.material)) for (const x of o.material) matLevel(x, lvl); else matLevel(o.material, lvl);
       if (sp) {
         const e = o.matrixWorld.elements, sc = Math.max(1e-6, Math.sqrt(Math.max(e[0] * e[0] + e[1] * e[1] + e[2] * e[2], e[4] * e[4] + e[5] * e[5] + e[6] * e[6], e[8] * e[8] + e[9] * e[9] + e[10] * e[10])));
         const r = sp.radius * sc;
         const px = e[0] * sp.center.x + e[4] * sp.center.y + e[8] * sp.center.z + e[12], py = e[1] * sp.center.x + e[5] * sp.center.y + e[9] * sp.center.z + e[13], pz = e[2] * sp.center.x + e[6] * sp.center.y + e[10] * sp.center.z + e[14];
         const dist = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2 + (pz - cz) ** 2) - r;
-        if (m && (m.side === 1 || m.fog === false) && r > 100) { if (r > skyR) skyR = r; if (o.__qHid) { o.visible = true; o.__qHid = false; } }
-        else if (r > 0.35 * d2) { if (o.__qHid) { o.visible = true; o.__qHid = false; } } // trop grand pour être coupé (sol, circuit, montagne)
+        const lod = o.userData && o.userData.lod, lc = lod && o.userData.lodC;
+        if (lod && (lod === 'near') !== (Math.hypot(lc[0] - cx, lc[1] - cz) - lc[2] < (lvl.near || 0) * DIST[Q.dist])) { if (!o.__qHid) { o.__qHid = true; o.visible = false; } } // zone de ville : version détaillée de près, simplifiée de loin
+        else if (m && (m.side === 1 || m.fog === false) && r > 100) { if (r > skyR) skyR = r; if (o.__qHid) { o.visible = true; o.__qHid = false; } }
+        // trop grand pour être coupé (sol, circuit, montagne), ou déclaré toujours dessiné par le jeu (frustumCulled = false : trafic instancié, jets d'eau,
+        // particules dont la sphère, calculée une fois à vide, ne suit pas le contenu qui bouge)
+        else if (r > 0.35 * d2 || o.frustumCulled === false) { if (o.__qHid) { o.visible = true; o.__qHid = false; } }
         else if (dist > d2 || (!small && r < 1 && dist > d1 * 0.6)) { if (!o.__qHid) { o.__qHid = true; o.visible = false; } }
         else {
           if (o.__qHid) { o.visible = true; o.__qHid = false; }
@@ -69,6 +78,70 @@ function sweep(root, cam, d1, d2, shadowsOn, lvl, small) {
   };
   visit(root);
   return skyR;
+}
+
+// Taille des textures : image réduite sur une copie (originale gardée pour remonter de niveau). Textures redessinées par le jeu
+// (vidéo, données, ou version qui bouge après notre copie : cadrans, cartes) rendues à l'original et laissées telles quelles. Retourne false si l'image n'est pas encore là.
+const TEX_KEYS = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'bumpMap', 'aoMap', 'emissiveMap', 'alphaMap', 'displacementMap', 'specularMap', 'lightMap', 'clearcoatNormalMap'];
+const isImg = i => i && i.width > 0 && ((typeof HTMLImageElement !== 'undefined' && i instanceof HTMLImageElement && i.complete) || (typeof HTMLCanvasElement !== 'undefined' && i instanceof HTMLCanvasElement) || (typeof ImageBitmap !== 'undefined' && i instanceof ImageBitmap));
+function texLevel(t, lvl) {
+  if (!t || t.__qSkip || t.__qLvl === lvl) return true;
+  if (t.isVideoTexture || t.isDataTexture || t.isCompressedTexture || t.isCubeTexture || t.isRenderTargetTexture || t.isFramebufferTexture) { t.__qSkip = true; return true; }
+  if (t.__qImg && t.version !== t.__qVer) { t.image = t.__qImg; t.__qImg = null; t.__qSkip = true; t.needsUpdate = true; return true; } // le jeu redessine cette texture
+  const src = t.__qImg || t.image;
+  if (!isImg(src)) return !!(src && src.data) || typeof document === 'undefined'; // pas encore chargée : on réessaiera
+  t.__qLvl = lvl; t.anisotropy = lvl.aniso;
+  const k = Math.min(1, lvl.tex / Math.max(src.width, src.height));
+  if (k < 1) {
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(src.width * k)); c.height = Math.max(1, Math.round(src.height * k));
+    c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); t.__qImg = src; t.image = c;
+  } else if (t.__qImg) { t.image = t.__qImg; t.__qImg = null; }
+  t.needsUpdate = true; t.__qVer = t.version;
+  return true;
+}
+function matLevel(m, lvl) {
+  if (!m || m.__qLvl === lvl) return;
+  let done = true;
+  for (const k of TEX_KEYS) if (m[k] && !texLevel(m[k], lvl)) done = false;
+  if (done) m.__qLvl = lvl;
+}
+
+// Bas : MeshStandard/Physical remplacés par une copie Lambert (éclairage bien moins coûteux par pixel : -35 % mesuré sur un GPU intégré).
+// Couleurs partagées (mêmes objets Color) ; valeurs simples recopiées dans les deux sens à chaque parcours, donc le jeu peut modifier
+// l'un ou l'autre (nuit, feux stop) ; matériaux à shader modifié (onBeforeCompile) laissés tels quels. Retour à l'original au-dessus de Bas.
+const SYNC = ['map', 'emissiveMap', 'alphaMap', 'emissiveIntensity', 'opacity', 'transparent', 'visible', 'alphaTest', 'side', 'depthWrite', 'depthTest', 'colorWrite', 'vertexColors', 'polygonOffset', 'polygonOffsetFactor', 'polygonOffsetUnits', 'fog', 'wireframe', 'toneMapped'];
+const RECOMPILE = new Set(['vertexColors', 'transparent', 'fog', 'alphaTest']);
+const lam = new WeakMap(), lamLive = new Set();
+function lambertOf(T, m) {
+  let l = lam.get(m);
+  if (l === undefined) {
+    l = m.onBeforeCompile !== T.Material.prototype.onBeforeCompile || (m.userData && m.userData.noLod) ? null : new T.MeshLambertMaterial({ flatShading: m.flatShading });
+    if (l) {
+      l.name = m.name; l.color = m.color; l.emissive = m.emissive; l.__qSrc = m; l.__qLam = true; l.__qS = {};
+      for (const k of SYNC) l.__qS[k] = l[k] = m[k];
+      if (m.transmission > 0) { l.transparent = true; l.opacity = Math.min(m.opacity, 0.45); } // verre à transmission : rendu en simple transparence
+    }
+    lam.set(m, l);
+  }
+  return l;
+}
+function syncLam(l) {
+  const m = l.__qSrc, s = l.__qS, glass = m.transmission > 0; let nu = false;
+  for (const k of SYNC) {
+    if (glass && (k === 'opacity' || k === 'transparent')) continue;
+    if (l[k] !== s[k]) m[k] = l[k]; // le jeu a modifié la copie
+    else if (m[k] !== l[k]) { if (RECOMPILE.has(k) || (k.endsWith('ap') && !m[k] !== !l[k])) nu = true; l[k] = m[k]; } // ... ou l'original
+    s[k] = l[k];
+  }
+  if (nu) l.needsUpdate = true;
+}
+function matSwap(T, o, simple) {
+  const m = o.material;
+  if (Array.isArray(m)) {
+    if (simple && m !== o.__qArrL) { const a = m.map(x => (x && x.isMeshStandardMaterial && lambertOf(T, x)) || x); if (a.some((x, i) => x !== m[i])) { o.__qArr = m; o.material = o.__qArrL = a; a.forEach(x => x.__qLam && lamLive.add(x)); } }
+    else if (!simple && o.__qArr && m === o.__qArrL) { o.material = o.__qArr; o.__qArr = o.__qArrL = null; }
+  } else if (simple) { if (m.isMeshStandardMaterial) { const l = lambertOf(T, m); if (l) { o.material = l; lamLive.add(l); } } }
+  else if (m.__qLam) o.material = m.__qSrc;
 }
 
 function lightShadow(l, on, lvl) {
@@ -113,7 +186,8 @@ export function frameUpdate(T, scene, cam) {
   const key = lvl.d2 + Q.dist + (Q.shadows ? 'S' : 'N') + (Q.small ? 'P' : 'x');
   let skyR = scene.__qSky || 0;
   if (++frame % 8 === 0 || last !== key || scene.__qLast !== key) {
-    if (cam.matrixWorld) skyR = scene.__qSky = sweep(scene, cam, d1, d2, Q.shadows, lvl, Q.small);
+    if (cam.matrixWorld) skyR = scene.__qSky = sweep(T, scene, cam, d1, d2, Q.shadows, lvl, Q.small);
+    for (const l of lamLive) syncLam(l);
     scene.__qLast = last = key;
   }
   applyFog(T, scene, d2);
@@ -145,7 +219,7 @@ export function initPanel() {
 <div class="r"><span>Petits objets lointains</span><span>${seg('small', [[1, 'Oui'], [0, 'Non']], +Q.small)}</span></div>
 <div class="r"><span>Limite d'images</span><span>${seg('fps30', [[0, '60 FPS'], [1, '30 FPS']], +Q.fps30)}</span></div>
 ${hasGuide() ? `<div class="r"><span>Guidage de conduite</span><span>${seg('guide', guideOnly() ? [['sol', 'Tracé au sol'], ['none', 'Rien']] : [['haut', 'Flèche en haut'], ['sol', 'Tracé au sol'], ['both', 'Les deux'], ['none', 'Rien']], eff())}</span></div>` : ''}
-<small>Auto s'adapte aux FPS${Q.mode === 'auto' ? ' (niveau actuel : ' + LEVELS[Q.auto].name + ')' : ''}. La qualité règle la distance d'affichage, le brouillard, la portée de la caméra et la taille des ombres. Réglages gardés sur cet appareil.</small>
+<small>Auto s'adapte aux FPS${Q.mode === 'auto' ? ' (niveau actuel : ' + LEVELS[Q.auto].name + ')' : ''}. La qualité règle la distance d'affichage, le brouillard, la portée de la caméra, la taille des ombres et des textures, la résolution et (Bas) des matériaux plus simples ; les bâtiments détaillés (Haut et Moyen) changent au prochain chargement. Réglages gardés sur cet appareil.</small>
 <button type="button" class="q-close" data-close>Fermer</button></div>`;
   };
   p.addEventListener('click', e => {
@@ -236,7 +310,7 @@ ${hasGuide() ? `<div class="r"><span>Guidage de conduite</span><span>${seg('guid
   const slots = () => { for (const e of document.querySelectorAll('[data-foot]')) if (!e.firstChild) e.append(foot()); }; // pages à menu fait main (FPV, Sky Pilot)
   setInterval(() => { injectPause(); slots(); }, 400);
   if (!document.getElementById('hk-menu-css')) document.head.append(Object.assign(document.createElement('link'), { id: 'hk-menu-css', rel: 'stylesheet', href: (import.meta.url ? new URL('game-menu.css', import.meta.url) : new URL('../../assets/game-menu.css', location.href)).href }  /* bus : bundle iife, import.meta vide */));
-  // Écran de départ commun pour les jeux sans menu de départ (<html data-start="1"> : Steep Peaks, Chantier & Carrière) : titre, description, bouton Jouer, Réglages, commandes.
+  // Écran de départ commun pour les jeux sans menu de départ (<html data-start="1"> : Steep Peaks, Déneigeur) : titre, description, bouton Jouer, Réglages, commandes.
   if (document.documentElement.dataset.start === '1') {
     const L = document.querySelector('script[data-name]') || { dataset: {} };
     const show = () => {

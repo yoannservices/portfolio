@@ -7,7 +7,9 @@ export async function loadGLB(url) {
   const load = async () => {
     const [{ GLTFLoader }, { DRACOLoader }] = await Promise.all([import(LOADERS + 'GLTFLoader.js'), import(LOADERS + 'DRACOLoader.js')]);
     const draco = new DRACOLoader().setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');
-    return (await new GLTFLoader().setDRACOLoader(draco).loadAsync(url)).scene;
+    const g = await new GLTFLoader().setDRACOLoader(draco).loadAsync(url);
+    g.scene.animations = g.animations; // clips gardés pour un AnimationMixer (personnages animés)
+    return g.scene;
   };
   return window.GameLoader ? window.GameLoader.trackPromise('Modèle 3D ' + new URL(url, location.href).pathname.split('/').pop(), load()) : load();
 }

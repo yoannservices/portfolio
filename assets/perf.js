@@ -1,7 +1,7 @@
-// Performance commune des jeux Three.js : plafond à 60 FPS et résolution adaptative (cible 30-60 FPS).
+// Performance commune des jeux Three.js : plafond à 60 FPS et résolution adaptative (cible 50-60 FPS).
 // patch(THREE) intercepte render/setPixelRatio, que WebGLRenderer définit sur chaque instance : aucun changement dans le code des jeux.
 import { initHud } from './hud-kit.js';
-import { frameUpdate, autoTick, maxFps } from './quality.js';
+import { frameUpdate, autoTick, maxFps, level } from './quality.js';
 const MIN_SCALE = 0.4;
 
 export function patch(T) {
@@ -17,25 +17,26 @@ export function patch(T) {
     set(fn) { Object.defineProperty(this, name, { value: make(this, fn), writable: true, configurable: true }); },
   });
 
-  wrap('setPixelRatio', (r, setPR) => v => { const s = state(r); s.base = v; setPR.call(r, v * s.scale); });
+  wrap('setPixelRatio', (r, setPR) => v => { const s = state(r); s.base = v; setPR.call(r, Math.min(v, level().pr) * s.scale); }); // plafond par niveau de qualité
 
   wrap('render', (r, render) => (...a) => {
     const s = state(r);
     s.raw = render;
     if (!s.started) start(r, s);
-    if (r.hudView && !s.last) { s.last = r.hudView; initHud(T, r, s); } // jeu qui rend la scène hors écran (fpv-racer) : il fournit scène et caméra
+    if (r.hudView && !s.last) { s.last = r.hudView; initHud(T, r, s); } // jeu qui rend la scène hors écran (fpv-racer, tesla avec effets) : il fournit scène et caméra
     const [scene, cam] = a; // la scène la plus fournie rendue à l'écran sert de base à la carte du HUD commun
     if (scene && scene.isScene && cam && cam.isPerspectiveCamera && !r.getRenderTarget() && (!s.last || scene.children.length >= s.last.scene.children.length)) {
       s.last = { scene, camera: cam };
       initHud(T, r, s);
     }
     if (s.skip) return;
-    if (scene && scene.isScene && cam && cam.isPerspectiveCamera && !r.getRenderTarget()) frameUpdate(T, scene, cam); // distance d'affichage, brouillard, portée, ombres (quality.js)
+    if (scene && scene.isScene && cam && cam.isPerspectiveCamera && (!r.getRenderTarget() || (r.hudView && r.hudView.scene === scene && r.hudView.camera === cam))) frameUpdate(T, scene, cam); // distance d'affichage, brouillard, portée, ombres, textures, matériaux (quality.js)
     return render.apply(r, a);
   });
 
   function start(r, s) {
     s.started = true;
+    addEventListener('gamesettings', () => r.setPixelRatio(s.base)); // niveau changé : nouveau plafond de résolution
     let prev = performance.now(), lastDraw = 0;
     (function tick(now) {
       requestAnimationFrame(tick);
@@ -45,9 +46,9 @@ export function patch(T) {
       if (!s.skip) lastDraw = now;
       s.avg += (dt - s.avg) * 0.08;
       autoTick(s.avg, s.scale, dt);
-      if (s.avg > 1000 / 40 && s.scale > MIN_SCALE) { // sous 40 FPS : on baisse la résolution
+      if (s.avg > 1000 / 50 && s.scale > MIN_SCALE) { // sous 50 FPS : on baisse la résolution
         s.scale = Math.max(MIN_SCALE, s.scale - 0.1); s.avg = 16.7; s.good = 0; r.setPixelRatio(s.base);
-      } else if (s.avg < 1000 / 55 && s.scale < 1) { // marge confortable : on remonte doucement
+      } else if (s.avg < 1000 / 54 && s.scale < 1) { // 54 FPS ou plus (un écran 60 Hz donne souvent 56-58 mesurés) : on remonte doucement
         if (++s.good > 240) { s.scale = Math.min(1, s.scale + 0.05); s.good = 0; r.setPixelRatio(s.base); }
       } else s.good = 0;
     })(prev);

@@ -5,6 +5,9 @@
    mémorise les projets récemment ouverts pour le hub.
    ═══════════════════════════════════════════════════════════ */
 
+/* Icône d'onglet commune (SVG en ligne) : sans elle, chaque page réclame /favicon.ico, absent du site (404/503). */
+if (document.head && !document.querySelector('link[rel~="icon"]')) document.head.append(Object.assign(document.createElement('link'), { rel: 'icon', href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23101a1d'/%3E%3Cpath d='M8 22l5-12 4 8 3-5 4 9z' fill='%2375d8c0'/%3E%3C/svg%3E" }));
+
 /* Clavier AZERTY : la lettre M est sur la position physique "Semicolon" (code KeyM = la touche virgule). Les jeux lisent event.code,
    on relaie donc la lettre m comme KeyM et on ignore la touche virgule qui porte ce code. */
 (function () {
@@ -58,6 +61,7 @@
     { cat: 'loisirs', path: 'loisirs/monde-ouvert/', mini: true, name: 'Monde Ouvert',  desc: 'Île 3D : 11 véhicules à choisir avec la roue (Tab)' },
     { cat: 'loisirs', path: 'loisirs/steep-peaks/', mini: true, name: 'Steep Peaks', desc: 'Snowboard, ski et wingsuit en monde ouvert de montagne' },
     { cat: 'loisirs', path: 'loisirs/parking-master/', mini: true, name: 'Parking Master', desc: '20 niveaux de stationnement serré, avec PNJ : ville, campagne, forêt et montagne' },
+    { cat: 'loisirs', path: 'loisirs/deneigeur/', mini: true, name: 'Déneigeur', desc: 'Déneige un quartier de montagne la nuit : pelle, fraise et quad' },
     { cat: 'loisirs', path: 'loisirs/kukirin/', mini: true,         name: 'Kukirin',                desc: 'Trottinette, livraisons et quêtes' },
     { cat: 'loisirs', path: 'loisirs/trottinette-freestyle/', mini: true, name: 'Trottinette Freestyle', desc: 'Skatepark 3D : whips, barspins, flips et grinds' },
     { cat: 'loisirs', path: 'loisirs/downhill-riders/', mini: true, name: 'Downhill Riders', desc: 'VTT de descente freestyle : pistes par graine, tricks, biomes, boutique' },
@@ -97,10 +101,11 @@
     window.requestAnimationFrame = cb => rawRaf(t => (frozen ? heldFrames.push(cb) : cb(t)));
   }
 
-  // jeux (loisirs/) : un dépôt GitHub Pages par jeu ; en local, chemins du dossier web
+  // chaque projet (jeu, outil, développement, éducation) a son dépôt GitHub Pages, nommé comme son dossier ; en local, chemins du dossier web
   const online = /github\.io$/.test(location.hostname);
+  const NO_REPO = ['pieces-detachees-tel']; // projets gardés en local
   function url(p) {
-    if (online && p.cat === 'loisirs') return `https://yoannservices.github.io/${p.path.split('/')[1]}/`;
+    if (online && !NO_REPO.includes(p.path.split('/')[1])) return `https://yoannservices.github.io/${p.path.split('/')[1]}/`;
     return new URL(p.path.endsWith('.html') ? p.path : p.path + 'index.html', root).href;
   }
   function esc(s) {

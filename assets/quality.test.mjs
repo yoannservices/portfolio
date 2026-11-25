@@ -21,4 +21,15 @@ assert(!mid.visible || !mid.castShadow, 'bas : le moyen recule'); assert(scene.f
 Q.shadows = false; frameUpdate(T, scene, cam); assert(!sun.castShadow, 'ombres coupées');
 Q.shadows = true; Q.mode = 'haut'; frameUpdate(T, scene, cam); assert(sun.castShadow && mid.visible && !far.visible, 'retour haut');
 far.position.x = 100; far.updateMatrixWorld(); for (let i = 0; i < 8; i++) frameUpdate(T, scene, cam); assert(far.visible, 'objet qui se rapproche : réaffiché');
+// Bas : matériau Standard remplacé par une copie Lambert qui partage la couleur, puis rendu au-dessus de Bas
+const std = new T.MeshStandardMaterial({ color: 0xff0000 }), box2 = new T.Mesh(new T.BoxGeometry(2, 2, 2), std); box2.position.set(5, 0, 0); scene.add(box2); box2.updateMatrixWorld();
+Q.mode = 'bas'; for (let i = 0; i < 8; i++) frameUpdate(T, scene, cam);
+assert(box2.material.isMeshLambertMaterial && box2.material.color === std.color, 'bas : Lambert à couleur partagée');
+std.emissiveIntensity = 3; box2.material.opacity = 0.5; for (let i = 0; i < 8; i++) frameUpdate(T, scene, cam);
+assert(box2.material.emissiveIntensity === 3 && std.opacity === 0.5, 'valeurs recopiées dans les deux sens');
+Q.mode = 'haut'; for (let i = 0; i < 8; i++) frameUpdate(T, scene, cam); assert(box2.material === std, 'haut : matériau d’origine');
+// zones K.lodCity : version détaillée de près, simplifiée de loin
+const zn = mk(30), zf = mk(30); zn.userData = { lod: 'near', lodC: [400, 0, 85] }; zf.userData = { lod: 'far', lodC: [400, 0, 85] };
+for (let i = 0; i < 8; i++) frameUpdate(T, scene, cam); assert(!zn.visible && zf.visible, 'zone lointaine : simplifiée');
+zn.userData.lodC = zf.userData.lodC = [50, 0, 85]; for (let i = 0; i < 8; i++) frameUpdate(T, scene, cam); assert(zn.visible && !zf.visible, 'zone proche : détaillée');
 console.log('quality OK');

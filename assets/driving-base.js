@@ -9,29 +9,12 @@
   const controls = (loader.dataset.controls || '').split('|').filter(Boolean);
   const style = document.createElement('style');
   style.textContent = `
-    .driving-intro{position:fixed;inset:0;z-index:99990;display:grid;place-items:center;overflow:auto;padding:24px;background:rgba(7,13,16,.96);color:#eaf1ed;font:15px/1.5 'Barlow','Segoe UI',sans-serif}
-    .driving-intro[hidden]{display:none}
-    .driving-intro:before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(141,198,186,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(141,198,186,.14) 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(transparent,#000 15%,#000 85%,transparent)}
-    .driving-intro__content{position:relative;width:min(760px,100%);padding:clamp(24px,6vw,52px) 0}
-    .driving-intro__eyebrow{margin:0 0 12px;color:#75d8c0;font:11px 'IBM Plex Mono',Consolas,monospace;text-transform:uppercase;letter-spacing:.16em}
-    .driving-intro h1{margin:0;font:700 clamp(36px,8vw,72px)/1 'Barlow Condensed','Arial Narrow',sans-serif;letter-spacing:.02em;text-wrap:balance}
-    .driving-intro__description{max-width:62ch;margin:16px 0 30px;color:#b5c5c0;font-size:17px}
-    .driving-intro h2{margin:0 0 12px;color:#75d8c0;font:600 12px 'IBM Plex Mono',Consolas,monospace;text-transform:uppercase;letter-spacing:.12em}
-    .driving-intro__keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:8px 26px;margin:0 0 30px}
-    .driving-intro__key{display:grid;grid-template-columns:minmax(74px,max-content) 1fr;gap:12px;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(220,241,234,.12);min-width:0}
-    .driving-intro kbd{font:600 12px 'IBM Plex Mono',Consolas,monospace;color:#f1c17d;white-space:nowrap}
-    .driving-intro__key span{color:#d5dfdb;overflow-wrap:anywhere}
-    .driving-intro__continue{border:1px solid #75d8c0;background:#75d8c0;color:#071412;padding:12px 20px;font:700 14px 'Barlow Condensed','Arial Narrow',sans-serif;text-transform:uppercase;letter-spacing:.08em;cursor:pointer}
-    .driving-intro__continue:hover{background:#a2f1dc}
-    .driving-intro__continue:focus-visible{outline:2px solid #f1c17d;outline-offset:3px}
     .driving-map-target{position:fixed!important;top:max(14px,env(safe-area-inset-top,0px))!important;right:max(14px,env(safe-area-inset-right,0px))!important;left:auto!important;bottom:auto!important;width:clamp(112px,22vw,172px)!important;height:auto!important;aspect-ratio:1!important;z-index:4!important;border:1px solid rgba(201,232,223,.52)!important;border-radius:8px!important;box-shadow:0 8px 26px rgba(0,0,0,.4)!important;pointer-events:auto!important}
     .driving-map{position:fixed;top:max(14px,env(safe-area-inset-top,0px));left:max(14px,env(safe-area-inset-left,0px));z-index:4;width:clamp(112px,22vw,172px);aspect-ratio:1;border:1px solid rgba(201,232,223,.52);border-radius:8px;background:#101a1d;box-shadow:0 8px 26px rgba(0,0,0,.4);pointer-events:none}
     .driving-map[hidden]{display:none}
     .driving-map{display:none!important}
     .driving-map canvas{display:block;width:100%;height:100%}
-    .driving-map__label{position:absolute;top:7px;left:8px;color:#c4d5d0;font:9px 'IBM Plex Mono',Consolas,monospace;letter-spacing:.08em;text-shadow:0 1px 3px #000}
-    @media(max-width:600px){.driving-intro{padding:16px}.driving-intro__description{font-size:15px;margin-bottom:22px}.driving-intro__keys{gap:4px 18px;margin-bottom:22px}}
-    @media(prefers-reduced-motion:reduce){.driving-intro *{scroll-behavior:auto!important}}`;
+    .driving-map__label{position:absolute;top:7px;left:8px;color:#c4d5d0;font:9px 'IBM Plex Mono',Consolas,monospace;letter-spacing:.08em;text-shadow:0 1px 3px #000}`;
   document.head.append(style);
 
   // Menu unique : titre, présentation (2 lignes), touches, insérés en tête du menu du jeu (data-menu), dont les éléments redondants (data-menu-hide, séparés par |) sont masqués.
